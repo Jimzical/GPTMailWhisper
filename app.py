@@ -33,6 +33,9 @@ def Settingup():
     # create sessionstate for msg
     if 'api_key' not in st.session_state:
         st.session_state['api_key'] = []
+    if 'first_time' not in st.session_state:
+        st.session_state['first_time'] = True
+
     if 'name' not in st.session_state:
         st.session_state['name'] = []
     if 'relation' not in st.session_state:
@@ -110,7 +113,10 @@ def SetAPI(NotifMode = True):
         openai.api_key = st.session_state.api_key
         try:
             openai.Engine.retrieve("ada")
-            # Notif("success",duration = 1.5)
+            if st.session_state.first_time:
+                st.session_state.first_time = False
+                Notif("success",duration = 1.5 , message="API Key Authenticated")
+                
         except:
             Notif("error",duration = 1.5, message = "Authentication Error with API Key")
 
@@ -125,7 +131,6 @@ def ClearButton(prompt_template = "write email"):
         st.session_state['prompt'] = st.session_state['prompt'][:1]
         st.session_state['total_tolkens'] = 0
         st.session_state['total_cost'] = 0.0
-
 def AdvancedOptions():
     # make a dropdown menu for the advanced options
     with st.expander("Advanced Options: "):
@@ -374,7 +379,6 @@ def Sidebar():
         ClearButton()
         AdvancedOptions()
 
-
 def Body():
     st.session_state.email_theme = ", ".join(st.session_state.email_theme)
     # if st.sssion_state.name is empty then show a message
@@ -436,11 +440,6 @@ def Body():
 
         prompt.append({"role": "assistant", "content": result})
         st.session_state["prompt"] = prompt
-
-
-
-
-
 
 def main():
     Settingup()
