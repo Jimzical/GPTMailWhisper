@@ -424,11 +424,6 @@ def Body():
         with st.chat_message("user"):
             st.write(question)
 
-
-            st.write(prompt) #TESTING
-        
-        
-        
         with st.chat_message("assistant"):
             botmsg = st.empty()
         response = []
