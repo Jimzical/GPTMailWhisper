@@ -16,3 +16,20 @@ It uses the GPT-3.5 model to generate emails
 
 - [x] API Cost Graph
 ![Screenshot](https://github.com/Jimzical/GPTMailWhisper/blob/media/gpt%20graph.png?raw=true)
+
+
+## Installation
+If you want to set this up on your own server, you can do so by following the steps below:
+
+1. Clone the repository
+```bash 
+git clone https://github.com/Jimzical/GPTMailWhisper.git
+```
+2. Install the requirements
+```bash
+pip install -r requirements.txt
+```
+3. Run the app
+```bash
+streamlit run app.py
+```
