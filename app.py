@@ -29,13 +29,14 @@ def Settingup():
             """
     st.markdown(hide_streamlit_style, unsafe_allow_html=True) 
 
-
     # create sessionstate for msg
     if 'api_key' not in st.session_state:
         st.session_state['api_key'] = []
     if 'first_time' not in st.session_state:
         st.session_state['first_time'] = True
 
+    if 'context' not in st.session_state:
+        st.session_state['context'] = []
     if 'name' not in st.session_state:
         st.session_state['name'] = []
     if 'relation' not in st.session_state:
@@ -385,38 +386,49 @@ def Body():
     if not st.session_state.name:
         st.session_state.name = "Sir/Madam"
     
-    prompt_template = f"""You are a Profestional Email Drafter who will Draft an Email to {st.session_state.name} who is your {st.session_state.relation} with the themes {st.session_state.email_theme} from {st.session_state.Sendername}"""
+    prompt_template = f"""You are a Profestional Email Drafter who will Draft an Email to {st.session_state.name} who is your {st.session_state.relation} from {st.session_state.Sendername} with the requirements to be {st.session_state.email_theme}"""
     
     colored_header(
-    label="Professional Emails",
     description=f"Cost: ${st.session_state.total_cost:.5f} | ₹{(st.session_state.total_cost*82.4582560):.2f} Tokens: {(st.session_state.total_tolkens)}"  ,
-    help= "Prompt: " +prompt_template,
+    help= "Prompt: " + prompt_template,
     description_help= "Cost Calculated based on OpenAI Pricing"
     )
 
-    if 'prompt' not in st.session_state:
-        st.session_state['prompt'] = [{"role": "system", "content": prompt_template}]
-
-
-
-    prompt = st.session_state['prompt']
-
-    for message in prompt:
-        if message["role"] != "system":
-            with st.chat_message(message["role"]):
-                st.write(message["content"])
+    st.session_state["context"] = st.text_area(
+        label="Email Context ",
+        value="",
+        max_chars=250,
+        help="This is the context of the email. This will help the AI to understand the context of the email.",
+        placeholder="Enter the Context of the Email",
+        height=150,
+        
+    )
+ 
+    prompt = [{"role": "system", "content": prompt_template}]
 
     # This is where the user types a question
     question = st.chat_input(
         placeholder="Enter the Subject of the Email (Ex: Meeting Request, Sick Leave, Complaint, etc... )",
     )
 
+    # Adding Context
+    if st.session_state.context != "":
+        question_for_gpt = "Context of email is:" + st.session_state.context+ " and the Request is:"+ str(question).strip()
+    else:
+        question_for_gpt = str(question).strip()
+
     if question:  # Someone have asked a question
         # First we add the question the question to our message history
-        prompt.append({"role": "user", "content": question})
+        prompt.append({"role": "user", "content": question_for_gpt})
         # Let's post our question and a place holder for the bot answer
         with st.chat_message("user"):
             st.write(question)
+
+
+            st.write(prompt) #TESTING
+        
+        
+        
         with st.chat_message("assistant"):
             botmsg = st.empty()
         response = []
