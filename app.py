@@ -10,12 +10,6 @@ from time import time, sleep
 
 
 def Settingup():
-    # Setting page title and header
-    # st.set_page_config(
-    #     page_title="GottaMail", 
-    #     page_icon="📫",
-    #     layout="wide",
-    #     )
     hide_streamlit_style = """
             <style>
             footer {visibility: hidden;}
@@ -63,9 +57,6 @@ def Settingup():
             "presence_penalty": 0.0,
             "max_tokens": 64,
         }
-        
-    
-
 
 def colored_header(label: str = "Nice title",description: str = "Cool description",color_name = "gold",help = " ", description_help = " "):
     """
@@ -99,7 +90,6 @@ def Notif(type = "success",duration = 3, message = "None"):
 
     sleep(duration)
     notif.empty()
-
 def SetAPI(NotifMode = True):
     ''' 
     Not Sure if Error Checking Works
@@ -448,7 +438,7 @@ def Body():
     st.session_state["context"] = st.text_area(
         label="Email Context ",
         value="",
-        max_chars=250,
+        max_chars=500,
         help="This will help the AI to understand the context of the email. (It is Completely Optional) )",
         placeholder="You can add the context for the Email here.",
         height=150,
@@ -486,6 +476,7 @@ def Body():
             result = completion.choices[0].message.content
 
             botmsg.write(result)
+            st.caption("Press Ctrl + C Anywhere to Copy to Clipboard")
             st.session_state.result = result
 
             chat_usage = completion.usage
@@ -505,8 +496,11 @@ def ReadHTMLFile(filename = "index.html", msg = " "):
         )
 
 def main():
-
-
+    st.set_page_config(
+        page_title="GottaMail", 
+        page_icon="📫",
+        layout="wide",
+        )
     Settingup()
     Body()
     Sidebar()
