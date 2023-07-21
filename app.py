@@ -389,6 +389,7 @@ def Body():
     prompt_template = f"""You are a Profestional Email Drafter who will Draft an Email to {st.session_state.name} who is your {st.session_state.relation} from {st.session_state.Sendername} with the requirements to be {st.session_state.email_theme}"""
     
     colored_header(
+    label="Professional Email Drafter",
     description=f"Cost: ${st.session_state.total_cost:.5f} | ₹{(st.session_state.total_cost*82.4582560):.2f} Tokens: {(st.session_state.total_tolkens)}"  ,
     help= "Prompt: " + prompt_template,
     description_help= "Cost Calculated based on OpenAI Pricing"
@@ -417,37 +418,39 @@ def Body():
     else:
         question_for_gpt = str(question).strip()
 
-    if question:  # Someone have asked a question
-        # First we add the question the question to our message history
-        prompt.append({"role": "user", "content": question_for_gpt})
-        # Let's post our question and a place holder for the bot answer
-        with st.chat_message("user"):
-            st.write(question)
+    try:
+        if question:  # Someone have asked a question
+            # First we add the question the question to our message history
+            prompt.append({"role": "user", "content": question_for_gpt})
+            # Let's post our question and a place holder for the bot answer
+            with st.chat_message("user"):
+                st.write(question)
 
-        with st.chat_message("assistant"):
-            botmsg = st.empty()
-        response = []
-        result = ""
-     
-        # completion = openai.ChatCompletion.create( model="gpt-3.5-turbo", messages=prompt, stream=True,n = 1)
-        completion = openai.ChatCompletion.create( model="gpt-3.5-turbo", messages=prompt,n = 1)
-        result = completion.choices[0].message.content
+            with st.chat_message("assistant"):
+                botmsg = st.empty()
+            response = []
+            result = ""
+        
+            # completion = openai.ChatCompletion.create( model="gpt-3.5-turbo", messages=prompt, stream=True,n = 1)
+            completion = openai.ChatCompletion.create( model="gpt-3.5-turbo", messages=prompt,n = 1)
+            result = completion.choices[0].message.content
 
-        # replace Sir/Madam with the name of the recipient 
-        if st.session_state.name != "Sir/Madam":
-            st.session_state.name = st.session_state.name.capitalize()
-            result = re.sub("Sir/Madam", st.session_state.name, result)
-        # replace the name of the sender from [Your Name] to the name of the sender
-        result = re.sub("\[Your Name\]", st.session_state.Sendername.capitalize(), result)
+            # replace Sir/Madam with the name of the recipient 
+            if st.session_state.name != "Sir/Madam":
+                st.session_state.name = st.session_state.name.capitalize()
+                result = re.sub("Sir/Madam", st.session_state.name, result)
+            # replace the name of the sender from [Your Name] to the name of the sender
+            result = re.sub("\[Your Name\]", st.session_state.Sendername.capitalize(), result)
 
-        botmsg.write(result)
+            botmsg.write(result)
 
-        chat_usage = completion.usage
-        CostCalculation(chat_usage)
+            chat_usage = completion.usage
+            CostCalculation(chat_usage)
 
-        prompt.append({"role": "assistant", "content": result})
-        st.session_state["prompt"] = prompt
-
+            prompt.append({"role": "assistant", "content": result})
+            st.session_state["prompt"] = prompt
+    except openai.error.AuthenticationError:
+        Notif("error",duration = 10, message = "Authentication Error with API Key")
 def main():
     Settingup()
     Sidebar()
