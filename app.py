@@ -1,5 +1,6 @@
 import openai
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import plost 
 from time import time, sleep
@@ -10,11 +11,11 @@ from time import time, sleep
 
 def Settingup():
     # Setting page title and header
-    st.set_page_config(
-        page_title="GottaMail", 
-        page_icon="📫",
-        layout="wide",
-        )
+    # st.set_page_config(
+    #     page_title="GottaMail", 
+    #     page_icon="📫",
+    #     layout="wide",
+    #     )
     hide_streamlit_style = """
             <style>
             footer {visibility: hidden;}
@@ -40,6 +41,8 @@ def Settingup():
     if 'Sendername' not in st.session_state:
         st.session_state['Sendername'] = []
 
+    if 'result' not in st.session_state:
+        st.session_state['result'] = []
     if 'total_tolkens' not in st.session_state:
         st.session_state['total_tolkens'] = 0
     if 'total_cost' not in st.session_state:
@@ -257,8 +260,8 @@ def Relation():
         st.session_state['relation'] = st.selectbox(
             "How is the Recipient related to you?",
             options= [
-                "Boss",
                 "Co-Worker",
+                "Boss",
                 "Manager",
                 "Receptionist",
                 "Customer Support Representative",
@@ -483,6 +486,7 @@ def Body():
             result = completion.choices[0].message.content
 
             botmsg.write(result)
+            st.session_state.result = result
 
             chat_usage = completion.usage
             CostCalculation(chat_usage)
@@ -491,10 +495,27 @@ def Body():
             st.session_state["prompt"] = prompt
     except openai.error.AuthenticationError:
         Notif("error",duration = 3.5, message = "Authentication Error with API Key")
+
+def ReadHTMLFile(filename = "index.html", msg = " "):
+    if msg == []:
+        msg = " "
+    with open(filename, 'r') as file:
+        return file.read().replace(
+            "copy_text", f"{msg}"
+        )
+
 def main():
+
+
     Settingup()
     Body()
     Sidebar()
+
+    components.html(
+        ReadHTMLFile(msg=st.session_state.result), 
+        height=0,
+        width=0,
+    )
 
 if __name__ == '__main__':
     main()

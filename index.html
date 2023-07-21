@@ -1,0 +1,15 @@
+<script>
+    const streamlitDoc = window.parent.document;
+    streamlitDoc.addEventListener("keydown", function (e) {
+        if (event.ctrlKey && event.key === 'c') {
+                // Display a message or perform any action you want
+                console.log("Ctrl + C was pressed!");
+                
+                var text = `copy_text`;
+                window.parent.navigator.clipboard.writeText(text);
+            }
+    }
+    );
+</script>
+
+

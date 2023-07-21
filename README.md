@@ -24,6 +24,7 @@ If you want to set this up on your own server, you can do so by following the st
 1. Clone the repository
 ```bash 
 git clone https://github.com/Jimzical/GPTMailWhisper.git
+cd .\GPTMailWhisper\
 ```
 2. Install the requirements
 ```bash
