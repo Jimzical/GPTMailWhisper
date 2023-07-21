@@ -3,15 +3,18 @@ import streamlit as st
 import json
 from time import sleep
 import re
-# from streamlit_extras.colored_header import colored_header
+from time import time
+import pandas as pd
+import plost 
+
+
+# temp
+import random
 
 
 # TODO: make it easirr to read with documetation
-# TODO use pip install forex-python to get automatic currency conversion
 # TODO::add a button to see the cost with grpahs
 
-# DONE: use main funciton 
-# DONE: figure out a chat message mmemory system (high cost of api calls)
 
 def Settingup():
     # Setting page title and header
@@ -20,7 +23,6 @@ def Settingup():
         page_icon="📫",
         layout="wide",
         )
-
     hide_streamlit_style = """
             <style>
             footer {visibility: hidden;}
@@ -50,6 +52,13 @@ def Settingup():
         st.session_state['total_tolkens'] = 0
     if 'total_cost' not in st.session_state:
         st.session_state['total_cost'] = 0.0
+
+    if 'chart_cost' not in st.session_state:
+        st.session_state['chart_cost'] = [0]
+    if 'chart_time' not in st.session_state:
+        st.session_state['chart_time'] = [0]
+    if 'start_time' not in st.session_state:
+        st.session_state['start_time'] = time()
 
     if 'advanced_options' not in st.session_state:
         st.session_state['advanced_options'] = {
@@ -124,14 +133,15 @@ def SetAPI(NotifMode = True):
     else:
         openai.api_key = st.session_state.api_key
 
-def ClearButton(prompt_template = "write email"):
-
-    clear_button = st.button("Clear Conversation", key="clear")
+def ClearButton():
+    clear_button = st.button("Clear Session")
     if clear_button:
         Notif("info",duration = 1.5, message = "Conversation Cleared")
-        st.session_state['prompt'] = st.session_state['prompt'][:1]
         st.session_state['total_tolkens'] = 0
         st.session_state['total_cost'] = 0.0
+        st.session_state['chart_cost'].append(0)
+        st.session_state['chart_time'].append(time() - st.session_state.start_time)
+
 def AdvancedOptions():
     # make a dropdown menu for the advanced options
     with st.expander("Advanced Options: "):
@@ -359,6 +369,9 @@ def CostCalculation(chat_usage):
     st.session_state.total_tolkens = chat_usage["total_tokens"] + st.session_state.total_tolkens
     st.session_state.total_cost += (chat_usage["prompt_tokens"] * 0.0015 / 1000) + (chat_usage["completion_tokens"] * 0.002 / 1000)
 
+    st.session_state.chart_cost.append(st.session_state.total_cost)
+    st.session_state.chart_time.append(time() - st.session_state.start_time)
+
 def Sidebar():
     with st.sidebar:
 
@@ -377,8 +390,50 @@ def Sidebar():
             SenderName()
         Relation()
         EmailTheme()
+
+    # create col
+    col1, col2 = st.sidebar.columns(2)
+    with col1:
         ClearButton()
+    with col2:
+            graph_button = st.button("Show Graph", key="graph")
+    if graph_button:
+        # # TEMPORARY
+        # # ----------------------------------------------------------------------------------- 
+        # st.session_state.chart_cost.append(st.session_state.chart_cost[-1] + random.randint(0, 10))
+        # st.session_state.chart_time.append(time() - st.session_state.start_time)
+        # # -----------------------------------------------------------------------------------
+        with st.chat_message("user"):
+            st.write("Can You Show me the Cost Graph?")
+
+        # Convert the lists to a DataFrame
+        df = pd.DataFrame({'Time': st.session_state.chart_time, 'Total Cost': st.session_state.chart_cost})
+
+
+        with st.chat_message("assistant"):
+            st.write("Sure, Here you go!")
+            st.write(" ")
+
+            # FOR ANNOTATION ----> Causes an issue with minimap
+            # new = df[df["Total Cost"] == 0]["Time"].tolist()
+
+            plost.area_chart(
+                data=df,
+                x="Time",
+                y="Total Cost",
+                color="#a29614",
+                opacity=0.85,
+                title="Total Cost Over Time",
+                width=800,
+                pan_zoom= 'minimap'
+                # x_annot= x_annotation,
+
+            )
+
+
+    with st.sidebar:
         AdvancedOptions()
+
 
 def Body():
     st.session_state.email_theme = ", ".join(st.session_state.email_theme)
@@ -435,13 +490,6 @@ def Body():
             completion = openai.ChatCompletion.create( model="gpt-3.5-turbo", messages=prompt,n = 1)
             result = completion.choices[0].message.content
 
-            # replace Sir/Madam with the name of the recipient 
-            if st.session_state.name != "Sir/Madam":
-                st.session_state.name = st.session_state.name.capitalize()
-                result = re.sub("Sir/Madam", st.session_state.name, result)
-            # replace the name of the sender from [Your Name] to the name of the sender
-            result = re.sub("\[Your Name\]", st.session_state.Sendername.capitalize(), result)
-
             botmsg.write(result)
 
             chat_usage = completion.usage
@@ -450,11 +498,11 @@ def Body():
             prompt.append({"role": "assistant", "content": result})
             st.session_state["prompt"] = prompt
     except openai.error.AuthenticationError:
-        Notif("error",duration = 10, message = "Authentication Error with API Key")
+        Notif("error",duration = 3.5, message = "Authentication Error with API Key")
 def main():
     Settingup()
-    Sidebar()
     Body()
+    Sidebar()
 
 if __name__ == '__main__':
     main()
