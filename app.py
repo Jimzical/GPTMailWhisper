@@ -7,7 +7,7 @@ from time import time, sleep
 
 
 # TODO: make it easirr to read with documetation
-
+# TODO: Add more Shortcuts and create documentation for them
 
 def Settingup():
     hide_streamlit_style = """
@@ -451,6 +451,10 @@ def Body():
     question = st.chat_input(
         placeholder="Enter the Subject of the Email (Ex: Meeting Request, Sick Leave, Complaint, etc... )",
     )
+    st.caption("Shortcut: Press '/' to activate input.")
+
+
+    question = Shortcuts(question)
 
     # Adding Context
     if st.session_state.context != "":
@@ -476,7 +480,7 @@ def Body():
             result = completion.choices[0].message.content
 
             botmsg.write(result)
-            st.caption("Press Ctrl + C Anywhere to Copy to Clipboard")
+            st.caption("Press Shift Anywhere to Copy to Clipboard")
             st.session_state.result = result
 
             chat_usage = completion.usage
@@ -494,6 +498,22 @@ def ReadHTMLFile(filename = "index.html", msg = " "):
         return file.read().replace(
             "copy_text", f"{msg}"
         )
+
+# TODO: Remove Redundancy
+def Shortcuts(question):
+    if question == '/':
+        question = question.replace("/", "")
+    if question == "/clear":
+        Notif("info",duration = 1.5, message = "Conversation Cleared")
+        st.session_state['total_tolkens'] = 0
+        st.session_state['total_cost'] = 0.0
+        st.session_state['chart_cost'].append(0)
+        st.session_state['chart_time'].append(time() - st.session_state.start_time)
+        question = False
+
+    return question
+
+
 
 def main():
     st.set_page_config(
