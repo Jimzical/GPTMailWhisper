@@ -1,4 +1,5 @@
-# ChatGPT Based Email Generator
+# ChatGPT Based Email Generator   [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://mailwhisper.streamlit.app/)
+
 
 This is a simple email generator based on the OpenAI's API
 It uses the GPT-3.5 model to generate emails 
