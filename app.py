@@ -440,8 +440,17 @@ def Body():
         value="",
         max_chars=500,
         help="This will help the AI to understand the context of the email. (It is Completely Optional) )",
-        placeholder="You can add the context for the Email here.",
-        height=150,
+        placeholder = 
+            '''        Example: 
+
+        I need to Reply to the Following Email:
+        "Hi John,
+        I hope you are doing well.
+        I am writing to you to ask about the status of the project.
+        Best Regards,
+        Jane"
+        ''',
+        height=200,
         
     )
  
