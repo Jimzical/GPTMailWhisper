@@ -438,7 +438,7 @@ def Body():
     st.session_state["context"] = st.text_area(
         label="Email Context ",
         value="",
-        max_chars=500,
+        max_chars=2500,
         help="This will help the AI to understand the context of the email. (It is Completely Optional) )",
         placeholder = 
             '''        Example: 
