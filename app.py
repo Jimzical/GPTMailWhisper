@@ -421,8 +421,6 @@ def Sidebar():
                 st.write(" ")
     with st.sidebar:
         AdvancedOptions()
-
-
 def Body():
     # st.session_state.email_theme = ", ".join(st.session_state.email_theme)
     # if st.sssion_state.name is empty then show a message
@@ -457,6 +455,9 @@ def Body():
         
     )
     prompt = [{"role": "system", "content": prompt_template}]
+    if st.session_state.first_time:
+        st.session_state.prompt.append(prompt)
+
 
     # This is where the user types a question
     question = st.chat_input(
@@ -475,9 +476,9 @@ def Body():
 
     try:
         if question:  # Someone have asked a question
-            # First we add the question the question to our message history
-            prompt.append({"role": "user", "content": question_for_gpt})
-            # Let's post our question and a place holder for the bot answer
+            # TODO
+            # prompt.append({"role": "user", "content": question_for_gpt})
+
             with st.chat_message("user"):
                 st.write(question)
 
@@ -485,11 +486,16 @@ def Body():
                 botmsg = st.empty()
             response = []
             result = ""
-            st.session_state.prompt = prompt
+            # TODO
+            # st.session_state.prompt = prompt
+            st.session_state.prompt.append({"role": "user", "content": question_for_gpt})
             with st.spinner("Generating Email... Please Wait for a few seconds"):
+                # TODO
                 completion = openai.ChatCompletion.create( model="gpt-3.5-turbo", messages=prompt,n = 1)
+                # completion = openai.ChatCompletion.create( model="gpt-3.5-turbo", messages=prompt[-1],n = 1)
                 result = completion.choices[0].message.content
 
+            st.session_state.prompt.append({"role": "assistant", "content": result})
             botmsg.write(result)
             st.caption("Press Shift Anywhere to Copy to Clipboard")
             st.session_state.result = result
@@ -497,8 +503,9 @@ def Body():
             chat_usage = completion.usage
             CostCalculation(chat_usage)
 
-            prompt.append({"role": "assistant", "content": result})
-            st.session_state["prompt"] = prompt
+            # TODO
+            # prompt.append({"role": "assistant", "content": result})
+            # st.session_state["prompt"] = prompt
     except openai.error.AuthenticationError:
         Notif("error",duration = 3.5, message = "Authentication Error with API Key")
     except openai.error.RateLimitError:
@@ -509,7 +516,6 @@ def Body():
         Notif("error",duration = 3.5, message = "OpenAI Error, Please Check your Internet Connection")
     except:
         Notif("error",duration = 3.5, message = "Unknown Error, Please Try Again")
-
 def ReadHTMLFile(filename = "index.html", msg = " "):
     if msg == []:
         msg = " "
@@ -518,22 +524,21 @@ def ReadHTMLFile(filename = "index.html", msg = " "):
             "copy_text", f"{msg}"
         )
 def Shortcuts(question):
-    if question == '/':
-        question = question.replace("/", "")
-    if question == '/help':
+    if question == '/help' or question == '/h':
         with st.chat_message("assistant"):
             st.write("Here are the shortcuts:")
             st.write(" ")
-            st.info("'/clear' : Clears the Conversation")
-            st.info("'/cost' : Shows the Cost of the Conversation")
-            st.info("'/graph' : Shows the Cost Graph")
-            st.info("'/prompt' : Shows the Context of the Email")
-            st.info("'/context' : Shows the Entire Context behind the Email")
-            st.info("'/relation' : Shows the Relation of the Recipient")
-            st.info("'/dev' : Shows the Dev Mode")
-            st.info("'/help' : Shows the Shortcuts")
+            st.info("'/clear' or '/cl': Clears the Conversation")
+            st.info("'/history' or '/hst' : Shows the History of the Conversation")
+            st.info("'/cost' or '/c': Shows the Cost of the Conversation")
+            st.info("'/graph' or '/g': Shows the Cost Graph")
+            st.info("'/prompt' or '/p': Shows the Context of the Email")
+            st.info("'/context' or '/con': Shows the Entire Context behind the Email")
+            st.info("'/relation' or '/r': Shows the Relation of the Recipient")
+            st.info("'/dev'  or '/d': Shows the Dev Mode")
+            st.info("'/help' or '/h': Shows the Shortcuts")
         question = False
-    if question == "/clear":
+    if question == "/clear" or question == "/cl":
         Notif("info",duration = 1.5, message = "Conversation Cleared")
         st.session_state['total_tolkens'] = 0
         st.session_state['total_cost'] = 0.0
@@ -541,13 +546,27 @@ def Shortcuts(question):
         st.session_state['chart_time'].append(time() - st.session_state.start_time)
         question = False
     
-    if question == "/cost":
+    if question == "/history" or question == "/hst":
+
+        hist = st.session_state.prompt[2:]
+        st.divider()
+        
+        with st.chat_message("assistant"):
+            st.subheader("The History of the Conversation is: ")
+        for i in hist:
+            with st.chat_message(i["role"]):
+                st.write(i["content"])
+            st.divider()
+
+        question = False
+
+    if question == "/cost" or question == "/c":
         with st.chat_message("assistant"):
             st.write("The Total Cost of the Conversation is: $" + str(st.session_state.total_cost))
             st.write("The Total Tokens of the Conversation is: " + str(st.session_state.total_tolkens))
         question = False
     
-    if question == "/graph":
+    if question == "/graph" or question == "/g":
         with st.chat_message("user"):
             st.write("Can You Show me the Cost Graph?")
 
@@ -572,7 +591,7 @@ def Shortcuts(question):
                 st.write("There is no data to show. Please Generate an Email First.")
                 st.write(" ")
         question = False
-    if question == "/prompt":
+    if question == "/prompt" or question == "/p":
         with st.chat_message("assistant"):
             if st.session_state.prompt == "":
                 st.write("There is no Context Given")
@@ -581,7 +600,9 @@ def Shortcuts(question):
                 st.write(st.session_state.prompt[0]["content"])
         question = False
 
-    if question == "/context":
+    if question == "/context" or question == "/con":
+        # st.session_state.prompt.pop(0)
+
         with st.chat_message("assistant"):
             if st.session_state.prompt == "":
                 st.write("There is no Context Given")
@@ -590,18 +611,22 @@ def Shortcuts(question):
                 st.write(st.session_state.prompt)
         question = False
 
-    if question == "/dev":
+    if question == "/relation" or question == "/r":
+        with st.chat_message("assistant"):
+            st.write("The Relation of the Recipient is: " + st.session_state.relation)
+        question = False
+
+    if question == "/dev" or question == "/d":
         with st.chat_message("assistant"):
             st.write("The Dev Mode is: " )
             safe_dev = st.session_state
             del safe_dev["api_key"]
             st.write(safe_dev)
         question = False
-    if question == "/relation":
-        with st.chat_message("assistant"):
-            st.write("The Relation of the Recipient is: " + st.session_state.relation)
-        question = False
 
+    if type(question) == str:
+        if question[0] == "/":
+            question = question[1:]
     return question
 
 def main():
