@@ -424,7 +424,7 @@ def Sidebar():
 
 
 def Body():
-    st.session_state.email_theme = ", ".join(st.session_state.email_theme)
+    # st.session_state.email_theme = ", ".join(st.session_state.email_theme)
     # if st.sssion_state.name is empty then show a message
     if not st.session_state.name:
         st.session_state.name = "Sir/Madam"
@@ -469,7 +469,7 @@ def Body():
 
     # Adding Context
     if st.session_state.context != "":
-        question_for_gpt = "Context of email is:" + st.session_state.context+ " and the Request is:"+ str(question).strip()
+        question_for_gpt = "Context of email is: \n" + st.session_state.context+ "\nand the Request is: "+ str(question).strip()
     else:
         question_for_gpt = str(question).strip()
 
@@ -517,8 +517,6 @@ def ReadHTMLFile(filename = "index.html", msg = " "):
         return file.read().replace(
             "copy_text", f"{msg}"
         )
-
-# TODO: Remove Redundancy
 def Shortcuts(question):
     if question == '/':
         question = question.replace("/", "")
@@ -528,6 +526,7 @@ def Shortcuts(question):
             st.write(" ")
             st.info("'/clear' : Clears the Conversation")
             st.info("'/cost' : Shows the Cost of the Conversation")
+            st.info("'/graph' : Shows the Cost Graph")
             st.info("'/prompt' : Shows the Context of the Email")
             st.info("'/context' : Shows the Entire Context behind the Email")
             st.info("'/relation' : Shows the Relation of the Recipient")
@@ -548,14 +547,49 @@ def Shortcuts(question):
             st.write("The Total Tokens of the Conversation is: " + str(st.session_state.total_tolkens))
         question = False
     
+    if question == "/graph":
+        with st.chat_message("user"):
+            st.write("Can You Show me the Cost Graph?")
+
+        # Convert the lists to a DataFrame
+        df = pd.DataFrame({'Time': st.session_state.chart_time, 'Total Cost': st.session_state.chart_cost})
+        if len(df) > 1:
+            with st.chat_message("assistant"):
+                st.write("Sure, Here you go!")
+                st.write(" ")
+                plost.area_chart(
+                    data=df,
+                    x="Time",
+                    y="Total Cost",
+                    color="#a29614",
+                    opacity=0.85,
+                    title="Total Cost Over Time",
+                    width=800,
+                    pan_zoom= 'minimap'
+                    # x_annot= x_annotation,
+
+                )
+        else:
+            with st.chat_message("assistant"):
+                st.write("There is no data to show. Please Generate an Email First.")
+                st.write(" ")
+        question = False
     if question == "/prompt":
-        # TODO Edit this to show prompt
         with st.chat_message("assistant"):
             if st.session_state.prompt == "":
                 st.write("There is no Context Given")
             else:
                 st.write("The Context of the Email is: ")
                 st.write(st.session_state.prompt[0]["content"])
+        question = False
+
+    if question == "/context":
+        with st.chat_message("assistant"):
+            if st.session_state.prompt == "":
+                st.write("There is no Context Given")
+            else:
+                st.write("The Full Context of the Email is: ")
+                st.write(st.session_state.prompt)
         question = False
 
     if question == "/dev":
@@ -571,8 +605,6 @@ def Shortcuts(question):
         question = False
 
     return question
-
-
 
 def main():
     st.set_page_config(
