@@ -786,6 +786,7 @@ def main():
     Connects all the functions together
     -------------------------------------------
     '''
+    
     st.set_page_config(
         page_title="GottaMail", 
         page_icon="📫",
