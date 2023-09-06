@@ -566,8 +566,6 @@ def Shortcuts(question):
                     title="Total Cost Over Time",
                     width=800,
                     pan_zoom= 'minimap'
-                    # x_annot= x_annotation,
-
                 )
         else:
             with st.chat_message("assistant"):
