@@ -9,7 +9,17 @@ from time import time, sleep
 # TODO: make it easirr to read with documetation
 # TODO: Add more Shortcuts and create documentation for them
 
-def Settingup():
+def Settingup() -> None:
+    '''
+    -------------------------------------------
+    This is where all the session state variables are created and the streamlit page is setup
+    -------------------------------------------
+    Parameters:
+        None
+
+    Returns:
+        None
+    '''
     hide_streamlit_style = """
             <style>
             footer {visibility: hidden;}
@@ -61,9 +71,25 @@ def Settingup():
     if 'prompt' not in st.session_state:
         st.session_state['prompt'] = []
 
-def colored_header(label: str = "Nice title",description: str = "Cool description",color_name = "gold",help = " ", description_help = " "):
+def colored_header(label : str = "Cool title",description : str = "Cool description",color_name : str = "gold",help : str = "", description_help : str = "") -> None:
     """
+    -------------------------------------------
     Shows a header with a colored underline and an optional description.
+    -------------------------------------------
+    Parameters:
+        label (str): The title of the header. [Default: "Cool title"]
+        description (str): The description of the header. [Default: "Cool description"]
+        color_name (str): The color of the underline. [Default: "gold"]
+        help (str): The help text of the title. [Default: nothing]
+        description_help (str): The help text of the description. [Default: nothing]
+    
+    Returns:
+        None
+
+    Examples:
+        >>> colored_header("Cool title", "Cool description", "gold", "This is the help text of the title", "This is the help text of the description")
+        >>> colored_header("Cool title", "Cool description", "gold")
+
     """
     st.title(
         body=label,
@@ -76,7 +102,25 @@ def colored_header(label: str = "Nice title",description: str = "Cool descriptio
     )
     if description:
         st.caption(description,help=description_help)
-def Notif(type = "success",duration = 3, message = "None"):
+def Notif(type : str = "success",duration : int = 3, message : str = "None") -> None:
+    '''
+    -------------------------------------------
+    Shows a notification for a few seconds
+    -------------------------------------------
+    Parameters:
+        type (str): The type of the notification. [Default: "success"]
+        duration (int): The duration of the notification. [Default: 3]
+        message (str): The message of the notification. [Default: "None"]
+
+    Returns:
+        None
+
+    Examples:
+        >>> Notif("success", 3, "This is a success notification")
+        >>> Notif("error", 2, "This is an error notification")
+        >>> Notif("warning", 5, "This is a warning notification")
+        >>> Notif("info", 3, "This is an info notification")
+    '''
     if message == "None":
         message = type 
 
@@ -93,9 +137,16 @@ def Notif(type = "success",duration = 3, message = "None"):
     
     sleep(duration)
     notif.empty()
-def SetAPI(NotifMode = True):
+def SetAPI(NotifMode : bool = True) -> None:
     ''' 
-    Not Sure if Error Checking Works
+    -------------------------------------------
+    This is where the API Key is set and authenticated
+    -------------------------------------------
+    Parameters:
+        NotifMode (bool): If True then it will show a notification if the API Key is authenticated. [Default: True]
+
+    Returns:
+        None
     '''
 
     st.session_state['api_key']= st.text_input(
@@ -121,7 +172,14 @@ def SetAPI(NotifMode = True):
     else:
         openai.api_key = st.session_state.api_key
 
-def ClearButton():
+def ClearButton() -> None:
+    '''
+    -------------------------------------------
+    This is where the clear button is created
+    -------------------------------------------
+    It will clear the session state variables and show a 
+    notification for a few seconds
+    '''
     clear_button = st.button("Clear Session")
     if clear_button:
         Notif("info",duration = 1.5, message = "Conversation Cleared")
@@ -130,7 +188,14 @@ def ClearButton():
         st.session_state['chart_cost'].append(0)
         st.session_state['chart_time'].append(time() - st.session_state.start_time)
 
-def AdvancedOptions():
+def AdvancedOptions() -> None:
+    '''
+    -------------------------------------------
+    This is where the advanced options are created
+    -------------------------------------------
+    Expander for the advanced options like temperature, top_p, etc...
+    to adjust the AI's response to the user's input
+    '''        
     # make a dropdown menu for the advanced options
     with st.expander("Advanced Options: "):
         st.session_state["advanced_options"]["temperature"] = st.slider(
@@ -194,7 +259,13 @@ def AdvancedOptions():
             dev_session_state = st.session_state
             del dev_session_state["api_key"]
             st.write(dev_session_state)
-def EmailTheme():
+def EmailTheme() -> None:
+    '''
+    -------------------------------------------
+    This is where the email theme is created
+    -------------------------------------------
+    It will create a multiselect box for the user to select the theme of the email
+    '''
     st.session_state['email_theme'] = st.multiselect(
             "What is the theme and lenght of the Email?",
             options = [
@@ -251,8 +322,14 @@ def EmailTheme():
             st.session_state.email_theme = st.session_state.email_theme + extra_theme.split(",")[:3]
         else:
             st.session_state.email_theme = extra_theme.split(",")[:6]
-def Relation():
-    
+def Relation() -> None:
+    '''
+    -------------------------------------------
+    This is where the relation of the recipient is created
+    -------------------------------------------
+    It will create a select box for the user to select the relation of the recipient
+
+    '''
         st.session_state['relation'] = st.selectbox(
             "How is the Recipient related to you?",
             options= [
@@ -342,28 +419,61 @@ def Relation():
                 help="Please Enter how the Recipient is related to you.",
                 placeholder="Enter the relation of the Recipient",   
             )
-def RecipientName():
+def RecipientName() -> None:
+    '''
+    -------------------------------------------
+    This is where the name of the recipient is created
+    -------------------------------------------
+    It will create a text input box for the user to enter the name of the recipient
+    and set the session state variable to the name of the recipient
+    '''
     st.session_state['name'] = st.text_input(
             label="To: ",
             max_chars=100,
             help="This will show up in the Email. If you don't enter a name then it will be Sir/Madam by default.",
             placeholder="Recipient",   
         )
-def SenderName():
+def SenderName() -> None:
+    '''
+    -------------------------------------------
+    This is where the name of the sender is created
+    -------------------------------------------
+    It will create a text input box for the user to enter the name of the sender
+    and set the session state variable to the name of the sender
+    '''
     st.session_state['Sendername'] = st.text_input(
             label="From: ",
             max_chars=100,
             help="This will show up in the Email.",
             placeholder="Sender",   
         )
-def CostCalculation(chat_usage):
+def CostCalculation(chat_usage : dict) -> None:
+    '''
+    -------------------------------------------
+    This is where the cost of the email is calculated
+    -------------------------------------------
+    It will calculate the cost of the email based on the chat usage
+    and add it to the total cost and total tokens
+
+    Parameters:
+        chat_usage (dict): The chat usage of the email
+
+    Returns:
+        None
+    '''
     st.session_state.total_tolkens = chat_usage["total_tokens"] + st.session_state.total_tolkens
     st.session_state.total_cost += (chat_usage["prompt_tokens"] * 0.0015 / 1000) + (chat_usage["completion_tokens"] * 0.002 / 1000)
 
     st.session_state.chart_cost.append(st.session_state.total_cost)
     st.session_state.chart_time.append(time() - st.session_state.start_time)
 
-def Sidebar():
+def Sidebar() -> None:
+    '''
+    -------------------------------------------
+    This is where the sidebar is created
+    -------------------------------------------
+    It will create the sidebar with all the options
+    '''
     with st.sidebar:
 
         colored_header(
@@ -421,9 +531,13 @@ def Sidebar():
                 st.write(" ")
     with st.sidebar:
         AdvancedOptions()
-def Body():
-    # st.session_state.email_theme = ", ".join(st.session_state.email_theme)
-    # if st.sssion_state.name is empty then show a message
+def Body() -> None:
+    '''
+    -------------------------------------------
+    This is where the body is created
+    -------------------------------------------
+    It will create the body of the main page
+    '''
     if not st.session_state.name:
         st.session_state.name = "Sir/Madam"
     
@@ -516,14 +630,51 @@ def Body():
         Notif("error",duration = 3.5, message = "OpenAI Error, Please Check your Internet Connection")
     except:
         Notif("error",duration = 3.5, message = "Unknown Error, Please Try Again")
-def ReadHTMLFile(filename = "index.html", msg = " "):
+def ReadHTMLFile(filename : str = "index.html", msg : str = " ") -> str:
+    '''
+    -------------------------------------------
+    This is where the HTML file is read
+    -------------------------------------------
+    It will read the HTML file and replace the copy_text with the msg
+    this is done to allow the copy to clipboard feature to work
+    and to allow the autoselect feature to work on the chat input
+
+    Parameters:
+        filename (str): The name of the HTML file. [Default: "index.html"]
+        msg (str): The message to replace the copy_text with. [Default: " "]
+
+    Returns:
+        str: The HTML file with the copy_text replaced with the msg
+    '''
     if msg == []:
         msg = " "
     with open(filename, 'r') as file:
         return file.read().replace(
             "copy_text", f"{msg}"
         )
-def Shortcuts(question):
+def Shortcuts(question : str) -> str:
+    '''
+    -------------------------------------------
+    This is where the shortcuts are created
+    -------------------------------------------
+    It will create the shortcuts for the user to use
+    The Shortcuts are:
+        '/clear' or '/cl': Clears the Conversation
+        '/history' or '/hst' : Shows the History of the Conversation
+        '/cost' or '/c': Shows the Cost of the Conversation
+        '/graph' or '/g': Shows the Cost Graph
+        '/prompt' or '/p': Shows the Context of the Email
+        '/context' or '/con': Shows the Entire Context behind the Email
+        '/relation' or '/r': Shows the Relation of the Recipient
+        '/dev'  or '/d': Shows the Dev Mode
+        '/help' or '/h': Shows the Shortcuts
+
+    Parameters:
+        question (str): The question that the user asked
+
+    Returns:
+        str: The question that the user asked
+    '''
     if question == '/help' or question == '/h':
         with st.chat_message("assistant"):
             st.write("Here are the shortcuts:")
@@ -630,6 +781,11 @@ def Shortcuts(question):
     return question
 
 def main():
+    '''
+    -------------------------------------------
+    Connects all the functions together
+    -------------------------------------------
+    '''
     st.set_page_config(
         page_title="GottaMail", 
         page_icon="📫",
