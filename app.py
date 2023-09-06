@@ -57,6 +57,9 @@ def Settingup():
             "presence_penalty": 0.0,
             "max_tokens": 64,
         }
+    
+    if 'prompt' not in st.session_state:
+        st.session_state['prompt'] = []
 
 def colored_header(label: str = "Nice title",description: str = "Cool description",color_name = "gold",help = " ", description_help = " "):
     """
@@ -87,7 +90,7 @@ def Notif(type = "success",duration = 3, message = "None"):
         notif = st.info(message)
     else:
         notif = st.write("Notif type not found")
-
+    
     sleep(duration)
     notif.empty()
 def SetAPI(NotifMode = True):
@@ -187,7 +190,10 @@ def AdvancedOptions():
         )
 
         if dev:
-            st.write(st.session_state)
+            # create a new variable that has all values for st.session_state except the api_key
+            dev_session_state = st.session_state
+            del dev_session_state["api_key"]
+            st.write(dev_session_state)
 def EmailTheme():
     st.session_state['email_theme'] = st.multiselect(
             "What is the theme and lenght of the Email?",
@@ -393,29 +399,26 @@ def Sidebar():
 
         # Convert the lists to a DataFrame
         df = pd.DataFrame({'Time': st.session_state.chart_time, 'Total Cost': st.session_state.chart_cost})
+        if len(df) > 1:
+            with st.chat_message("assistant"):
+                st.write("Sure, Here you go!")
+                st.write(" ")
+                plost.area_chart(
+                    data=df,
+                    x="Time",
+                    y="Total Cost",
+                    color="#a29614",
+                    opacity=0.85,
+                    title="Total Cost Over Time",
+                    width=800,
+                    pan_zoom= 'minimap'
+                    # x_annot= x_annotation,
 
-
-        with st.chat_message("assistant"):
-            st.write("Sure, Here you go!")
-            st.write(" ")
-
-            # FOR ANNOTATION ----> Causes an issue with minimap
-            # new = df[df["Total Cost"] == 0]["Time"].tolist()
-
-            plost.area_chart(
-                data=df,
-                x="Time",
-                y="Total Cost",
-                color="#a29614",
-                opacity=0.85,
-                title="Total Cost Over Time",
-                width=800,
-                pan_zoom= 'minimap'
-                # x_annot= x_annotation,
-
-            )
-
-
+                )
+        else:
+            with st.chat_message("assistant"):
+                st.write("There is no data to show. Please Generate an Email First.")
+                st.write(" ")
     with st.sidebar:
         AdvancedOptions()
 
@@ -438,7 +441,7 @@ def Body():
     st.session_state["context"] = st.text_area(
         label="Email Context ",
         value="",
-        max_chars=500,
+        max_chars=2500,
         help="This will help the AI to understand the context of the email. (It is Completely Optional) )",
         placeholder = 
             '''        Example: 
@@ -453,14 +456,13 @@ def Body():
         height=200,
         
     )
- 
     prompt = [{"role": "system", "content": prompt_template}]
 
     # This is where the user types a question
     question = st.chat_input(
         placeholder="Enter the Subject of the Email (Ex: Meeting Request, Sick Leave, Complaint, etc... )",
     )
-    st.caption("Shortcut: Press '/' to activate input.")
+    st.caption("Shortcut: Press '/' to activate input and Press '/help' for all shortcuts..")
 
 
     question = Shortcuts(question)
@@ -483,10 +485,10 @@ def Body():
                 botmsg = st.empty()
             response = []
             result = ""
-        
-            # completion = openai.ChatCompletion.create( model="gpt-3.5-turbo", messages=prompt, stream=True,n = 1)
-            completion = openai.ChatCompletion.create( model="gpt-3.5-turbo", messages=prompt,n = 1)
-            result = completion.choices[0].message.content
+            st.session_state.prompt = prompt
+            with st.spinner("Generating Email... Please Wait for a few seconds"):
+                completion = openai.ChatCompletion.create( model="gpt-3.5-turbo", messages=prompt,n = 1)
+                result = completion.choices[0].message.content
 
             botmsg.write(result)
             st.caption("Press Shift Anywhere to Copy to Clipboard")
@@ -499,6 +501,14 @@ def Body():
             st.session_state["prompt"] = prompt
     except openai.error.AuthenticationError:
         Notif("error",duration = 3.5, message = "Authentication Error with API Key")
+    except openai.error.RateLimitError:
+        Notif("error",duration = 3.5, message = "Rate Limit Error, Please Wait for 30 seconds")
+    except openai.error.APIConnectionError:
+        Notif("error",duration = 3.5, message = "API Connection Error, Please Check your Internet Connection")
+    except openai.error.OpenAIError:
+        Notif("error",duration = 3.5, message = "OpenAI Error, Please Check your Internet Connection")
+    except:
+        Notif("error",duration = 3.5, message = "Unknown Error, Please Try Again")
 
 def ReadHTMLFile(filename = "index.html", msg = " "):
     if msg == []:
@@ -512,12 +522,52 @@ def ReadHTMLFile(filename = "index.html", msg = " "):
 def Shortcuts(question):
     if question == '/':
         question = question.replace("/", "")
+    if question == '/help':
+        with st.chat_message("assistant"):
+            st.write("Here are the shortcuts:")
+            st.write(" ")
+            st.info("'/clear' : Clears the Conversation")
+            st.info("'/cost' : Shows the Cost of the Conversation")
+            st.info("'/prompt' : Shows the Context of the Email")
+            st.info("'/context' : Shows the Entire Context behind the Email")
+            st.info("'/relation' : Shows the Relation of the Recipient")
+            st.info("'/dev' : Shows the Dev Mode")
+            st.info("'/help' : Shows the Shortcuts")
+        question = False
     if question == "/clear":
         Notif("info",duration = 1.5, message = "Conversation Cleared")
         st.session_state['total_tolkens'] = 0
         st.session_state['total_cost'] = 0.0
         st.session_state['chart_cost'].append(0)
         st.session_state['chart_time'].append(time() - st.session_state.start_time)
+        question = False
+    
+    if question == "/cost":
+        with st.chat_message("assistant"):
+            st.write("The Total Cost of the Conversation is: $" + str(st.session_state.total_cost))
+            st.write("The Total Tokens of the Conversation is: " + str(st.session_state.total_tolkens))
+        question = False
+    
+    if question == "/prompt":
+        # TODO Edit this to show prompt
+        with st.chat_message("assistant"):
+            if st.session_state.prompt == "":
+                st.write("There is no Context Given")
+            else:
+                st.write("The Context of the Email is: ")
+                st.write(st.session_state.prompt[0]["content"])
+        question = False
+
+    if question == "/dev":
+        with st.chat_message("assistant"):
+            st.write("The Dev Mode is: " )
+            safe_dev = st.session_state
+            del safe_dev["api_key"]
+            st.write(safe_dev)
+        question = False
+    if question == "/relation":
+        with st.chat_message("assistant"):
+            st.write("The Relation of the Recipient is: " + st.session_state.relation)
         question = False
 
     return question
