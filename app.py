@@ -71,7 +71,7 @@ def Settingup() -> None:
     if 'prompt' not in st.session_state:
         st.session_state['prompt'] = []
 
-def colored_header(label : str = "Cool title",description : str = "Cool description",color_name : str = "gold",help : str = "", description_help : str = "", img : bool = False) -> None:
+def colored_header(label : str = "Cool title",description : str = "Cool description",color_name : str = "gold",help : str = "", description_help : str = "") -> None:
     """
     -------------------------------------------
     Shows a header with a colored underline and an optional description.
@@ -91,12 +91,7 @@ def colored_header(label : str = "Cool title",description : str = "Cool descript
         >>> colored_header("Cool title", "Cool description", "gold")
 
     """
-    
-    col1, col2 = st.columns([1,10])
-    if img:
-        col1.image("media\mail.png")
-    
-    col2.title(
+    st.title(
         body=label,
         help=help,
     )
@@ -552,8 +547,7 @@ def Body() -> None:
     label="Professional Email Drafter",
     description=f"Cost: ${st.session_state.total_cost:.5f} | ₹{(st.session_state.total_cost*82.4582560):.2f} Tokens: {(st.session_state.total_tolkens)}"  ,
     help= "Prompt: " + prompt_template,
-    description_help= "Cost Calculated based on OpenAI Pricing",
-    img=True
+    description_help= "Cost Calculated based on OpenAI Pricing"
     )
 
     st.session_state["context"] = st.text_area(
